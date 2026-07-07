@@ -2,6 +2,8 @@ const MESSAGE = {
   SELECTION_CAPTURED: "SELECTION_CAPTURED"
 };
 
+const DIRECT_SELECTION_URL = "https://mv3-navigation-tab-demo.onrender.com/api/direct-selections";
+
 let lastSentKey = "";
 let debounceTimer = 0;
 
@@ -32,19 +34,47 @@ async function captureSelection() {
 
   lastSentKey = dedupeKey;
 
+  const payload = {
+    selectedText: normalizedText,
+    pageUrl: location.href,
+    pageTitle: document.title,
+    selectedAt
+  };
+
   try {
     const response = await chrome.runtime.sendMessage({
       type: MESSAGE.SELECTION_CAPTURED,
-      selectedText: normalizedText,
-      pageUrl: location.href,
-      pageTitle: document.title,
-      selectedAt
+      ...payload
     });
 
     if (!response || !response.ok) {
       console.warn("[selection-content] Highlighted text was not stored.", response);
     }
   } catch (error) {
-    console.warn("[selection-content] Could not send highlighted text to the service worker.", error);
+    console.warn("[selection-content] Could not send highlighted text through the service worker.", error);
+  }
+
+  try {
+    await sendSelectionDirectly(payload);
+  } catch (error) {
+    console.warn("[selection-content] Could not send highlighted text directly.", error);
+  }
+}
+
+async function sendSelectionDirectly(payload) {
+  const response = await fetch(DIRECT_SELECTION_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      ...payload,
+      delivery: "content-script-direct"
+    })
+  });
+
+  const data = await response.json();
+  if (!response.ok || !data.ok) {
+    throw new Error(data.error || `Direct selection server returned HTTP ${response.status}.`);
   }
 }

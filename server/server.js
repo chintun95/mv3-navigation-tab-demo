@@ -8,6 +8,7 @@ const PORT = Number(process.env.PORT || 8790);
 const DISPLAY_HOST = HOST === "0.0.0.0" ? "127.0.0.1" : HOST;
 const DATA_DIR = path.join(__dirname, "data");
 const SELECTION_LOG_PATH = path.join(DATA_DIR, "selection-log.json");
+const DIRECT_SELECTION_LOG_PATH = path.join(DATA_DIR, "direct-selection-log.json");
 
 let currentTitle = "MV3 Navigation Lab";
 const titleLog = [
@@ -18,6 +19,7 @@ const titleLog = [
   }
 ];
 let selectionLog = [];
+let directSelectionLog = [];
 
 function send(res, status, body, headers = {}) {
   res.writeHead(status, {
@@ -257,11 +259,37 @@ async function handleTitlePost(req, res) {
 async function handleSelectionPost(req, res) {
   const body = await readBody(req);
   const data = JSON.parse(body || "{}");
+  const result = await storeSelection(data, selectionLog, SELECTION_LOG_PATH);
+  selectionLog = result.log;
+
+  sendJson(res, 200, {
+    ok: true,
+    saved: result.entry,
+    count: selectionLog.length
+  });
+}
+
+async function handleDirectSelectionPost(req, res) {
+  const body = await readBody(req);
+  const data = JSON.parse(body || "{}");
+  const result = await storeSelection(data, directSelectionLog, DIRECT_SELECTION_LOG_PATH);
+  directSelectionLog = result.log;
+
+  sendJson(res, 200, {
+    ok: true,
+    saved: result.entry,
+    count: directSelectionLog.length,
+    delivery: "content-script-direct"
+  });
+}
+
+async function storeSelection(data, log, filePath) {
   const selectedText = String(data.selectedText || "").trim().slice(0, 1000);
 
   if (!selectedText) {
-    sendJson(res, 400, { ok: false, error: "selectedText is required." });
-    return;
+    const error = new Error("selectedText is required.");
+    error.status = 400;
+    throw error;
   }
 
   const entry = {
@@ -269,37 +297,32 @@ async function handleSelectionPost(req, res) {
     selectedText,
     pageUrl: String(data.pageUrl || "").slice(0, 2000),
     pageTitle: String(data.pageTitle || "").slice(0, 300),
+    delivery: String(data.delivery || "service-worker").slice(0, 80),
     selectedAt: data.selectedAt || new Date().toISOString(),
     storedAt: new Date().toISOString()
   };
 
-  selectionLog.push(entry);
-  selectionLog = selectionLog.slice(-200);
-  await writeSelectionLog();
-
-  sendJson(res, 200, {
-    ok: true,
-    saved: entry,
-    count: selectionLog.length
-  });
+  const nextLog = [...log, entry].slice(-200);
+  await writeJsonFile(filePath, nextLog);
+  return { entry, log: nextLog };
 }
 
-async function readSelectionLog() {
+async function readJsonFile(filePath) {
   try {
-    const raw = await fs.readFile(SELECTION_LOG_PATH, "utf8");
+    const raw = await fs.readFile(filePath, "utf8");
     const parsed = JSON.parse(raw);
-    selectionLog = Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
     if (error.code !== "ENOENT") {
-      console.warn("Could not read selection log:", error.message);
+      console.warn(`Could not read ${filePath}:`, error.message);
     }
-    selectionLog = [];
+    return [];
   }
 }
 
-async function writeSelectionLog() {
+async function writeJsonFile(filePath, data) {
   await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.writeFile(SELECTION_LOG_PATH, `${JSON.stringify(selectionLog, null, 2)}\n`);
+  await fs.writeFile(filePath, `${JSON.stringify(data, null, 2)}\n`);
 }
 
 const server = http.createServer(async (req, res) => {
@@ -341,6 +364,15 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === "GET" && url.pathname === "/api/direct-selections") {
+      sendJson(res, 200, {
+        ok: true,
+        count: directSelectionLog.length,
+        selections: directSelectionLog.slice().reverse()
+      });
+      return;
+    }
+
     if (req.method === "POST" && url.pathname === "/api/title") {
       await handleTitlePost(req, res);
       return;
@@ -351,16 +383,26 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === "POST" && url.pathname === "/api/direct-selections") {
+      await handleDirectSelectionPost(req, res);
+      return;
+    }
+
     sendJson(res, 404, { ok: false, error: "Not found." });
   } catch (error) {
-    sendJson(res, 500, {
+    sendJson(res, error.status || 500, {
       ok: false,
       error: error.message
     });
   }
 });
 
-readSelectionLog().then(() => {
+Promise.all([
+  readJsonFile(SELECTION_LOG_PATH),
+  readJsonFile(DIRECT_SELECTION_LOG_PATH)
+]).then(([savedSelections, savedDirectSelections]) => {
+  selectionLog = savedSelections;
+  directSelectionLog = savedDirectSelections;
   server.listen(PORT, HOST, () => {
     console.log(`MV3 title server running at http://${DISPLAY_HOST}:${PORT}/admin`);
   });

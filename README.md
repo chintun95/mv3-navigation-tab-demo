@@ -206,6 +206,24 @@ You can inspect the current hosted selection log at:
 https://mv3-navigation-tab-demo.onrender.com/api/selections
 ```
 
+For comparison, the same content script also tries a direct browser fetch to:
+
+```text
+https://mv3-navigation-tab-demo.onrender.com/api/direct-selections
+```
+
+That direct path writes to:
+
+```text
+server/data/direct-selection-log.json
+```
+
+You can inspect it at:
+
+```text
+https://mv3-navigation-tab-demo.onrender.com/api/direct-selections
+```
+
 Because this content script matches all HTTP/HTTPS pages, Chrome will warn that the extension can read and change data on websites. That is expected for this lab feature. Do not ship this behavior publicly without clear consent, a privacy policy, and a narrower purpose.
 
 ## Step 8: Inspect the Service Worker
@@ -265,6 +283,7 @@ Selection content script to service worker:
 7. Confirm the open new tab changes to `Research Dashboard`.
 8. Open a second new tab and confirm it fetches `Research Dashboard` from the hosted server during page load.
 9. Highlight text on any normal webpage.
-10. Open `YOUR_RENDER_URL/api/selections` and confirm the selected text appears in the JSON log.
+10. Open `YOUR_RENDER_URL/api/selections` and confirm the selected text appears in the service-worker JSON log.
+11. Open `YOUR_RENDER_URL/api/direct-selections` and confirm whether the same text appears in the direct content-script JSON log.
 
 If the title does not update, inspect the service worker logs first. Most beginner MV3 issues are visible there.
