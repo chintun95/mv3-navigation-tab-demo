@@ -26,6 +26,7 @@ const manifestPath = path.join(extensionRoot, "manifest.json");
 const rulesPath = path.join(extensionRoot, "rules", "static-rules.json");
 const popupPath = path.join(extensionRoot, "popup", "popup.js");
 const newtabPath = path.join(extensionRoot, "newtab", "newtab.html");
+const serviceWorkerPath = path.join(extensionRoot, "service-worker.js");
 const readmePath = path.join(projectRoot, "README.md");
 
 const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
@@ -54,6 +55,7 @@ fs.writeFileSync(rulesPath, `${JSON.stringify(rules, null, 2)}\n`);
 
 replaceFileText(popupPath, /const ADMIN_URL = ".*?";/, `const ADMIN_URL = "${remoteOrigin}/admin";`);
 replaceFileText(newtabPath, /href="[^"]+"([^>]*data-admin-link)/, `href="${remoteOrigin}/admin"$1`);
+replaceFileText(serviceWorkerPath, /const HOSTED_SERVER_ORIGIN = ".*?";/, `const HOSTED_SERVER_ORIGIN = "${remoteOrigin}";`);
 replaceFileText(readmePath, /REMOTE_SERVER_URL=.*/, `REMOTE_SERVER_URL=${remoteOrigin}`);
 
 console.log(`Configured extension for remote server: ${remoteOrigin}`);

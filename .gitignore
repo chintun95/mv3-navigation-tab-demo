@@ -1,5 +1,6 @@
 node_modules/
 extension/_metadata/
+server/data/*.json
 *.log
 .env
 .env.*

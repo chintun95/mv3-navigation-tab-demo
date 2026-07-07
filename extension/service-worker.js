@@ -3,7 +3,8 @@ const MESSAGE = {
   TITLE_CHANGED_FROM_ADMIN: "TITLE_CHANGED_FROM_ADMIN",
   TITLE_UPDATED: "TITLE_UPDATED",
   TITLE_REFRESH: "TITLE_REFRESH",
-  TITLE_STATUS: "TITLE_STATUS"
+  TITLE_STATUS: "TITLE_STATUS",
+  SELECTION_CAPTURED: "SELECTION_CAPTURED"
 };
 
 const STORAGE_KEYS = {
@@ -15,6 +16,7 @@ const STORAGE_KEYS = {
 
 const DEFAULT_TITLE = "MV3 Navigation Lab";
 const REMOTE_TITLE_URL = "http://remote-title.example/api/title";
+const HOSTED_SERVER_ORIGIN = "https://mv3-navigation-tab-demo.onrender.com";
 
 chrome.runtime.onInstalled.addListener(async () => {
   console.log("[service-worker] Installed. Seeding default storage and checking rules.");
@@ -73,6 +75,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message.type === MESSAGE.SELECTION_CAPTURED) {
+    console.log("[service-worker] Content script captured highlighted text.", {
+      tabId: sender.tab && sender.tab.id,
+      url: message.pageUrl
+    });
+    postSelectionToServer(message, sender).then(sendResponse);
+    return true;
+  }
+
   return false;
 });
 
@@ -120,6 +131,40 @@ async function fetchTitleFromRemote() {
   }
 
   return title.slice(0, 80);
+}
+
+async function postSelectionToServer(message, sender) {
+  try {
+    const payload = {
+      selectedText: String(message.selectedText || "").trim().slice(0, 1000),
+      pageUrl: String(message.pageUrl || sender.tab?.url || "").slice(0, 2000),
+      pageTitle: String(message.pageTitle || sender.tab?.title || "").slice(0, 300),
+      selectedAt: message.selectedAt || new Date().toISOString(),
+      tabId: sender.tab?.id || null
+    };
+
+    if (!payload.selectedText) {
+      return { ok: false, error: "No selected text to send." };
+    }
+
+    const response = await fetch(`${HOSTED_SERVER_ORIGIN}/api/selections`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || `Selection server returned HTTP ${response.status}.`);
+    }
+
+    return data;
+  } catch (error) {
+    console.warn("[service-worker] Could not store highlighted text.", error);
+    return { ok: false, error: error.message };
+  }
 }
 
 async function saveTitle(title, source) {

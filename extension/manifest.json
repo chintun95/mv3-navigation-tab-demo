@@ -41,6 +41,16 @@
         "content/admin-content.js"
       ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "content/selection-content.js"
+      ],
+      "run_at": "document_idle"
     }
   ],
   "declarative_net_request": {

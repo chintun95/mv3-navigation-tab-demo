@@ -10,6 +10,7 @@ The goal is not to build a fancy dashboard. The goal is to learn the moving part
 - `chrome_url_overrides.newtab` replaces Chrome's New Tab page.
 - A service worker coordinates background work in MV3.
 - A content script runs on a normal webpage and messages the service worker.
+- A second content script can run on all HTTP/HTTPS pages, read highlighted text, and send it through the service worker.
 - `chrome.storage.local` keeps state when the service worker goes idle.
 - Static Declarative Net Request rules can redirect matching network requests without a blocking JavaScript listener.
 - Popup, options, and side panel pages are extension-owned pages that can also talk to the service worker.
@@ -30,6 +31,7 @@ mv3-navigation-tab-demo/
     service-worker.js
     rules/static-rules.json
     content/admin-content.js
+    content/selection-content.js
     newtab/newtab.html
     popup/popup.html
     options/options.html
@@ -166,7 +168,47 @@ The service worker then refreshes the title through the same fake remote URL and
 
 Any open extension page that is listening, including the new tab page, updates immediately.
 
-## Step 7: Inspect the Service Worker
+## Step 7: Highlight Text on Any Page
+
+This lab also injects `content/selection-content.js` on all normal HTTP/HTTPS pages:
+
+```json
+"matches": ["http://*/*", "https://*/*"]
+```
+
+When you highlight text, that content script sends:
+
+```js
+{
+  type: "SELECTION_CAPTURED",
+  selectedText,
+  pageUrl,
+  pageTitle,
+  selectedAt
+}
+```
+
+The service worker receives that message and posts the data to:
+
+```text
+https://mv3-navigation-tab-demo.onrender.com/api/selections
+```
+
+The server appends the latest selections to:
+
+```text
+server/data/selection-log.json
+```
+
+You can inspect the current hosted selection log at:
+
+```text
+https://mv3-navigation-tab-demo.onrender.com/api/selections
+```
+
+Because this content script matches all HTTP/HTTPS pages, Chrome will warn that the extension can read and change data on websites. That is expected for this lab feature. Do not ship this behavior publicly without clear consent, a privacy policy, and a narrower purpose.
+
+## Step 8: Inspect the Service Worker
 
 In `chrome://extensions`, find **MV3 Navigation Tab Learning Demo** and click **service worker**.
 
@@ -177,6 +219,7 @@ Look for log messages like:
 [service-worker] Fetching fake remote URL. Static DNR should redirect it.
 [service-worker] Static DNR rule matched.
 [service-worker] Content script reported an admin title change.
+[service-worker] Content script captured highlighted text.
 ```
 
 ## Why Storage Matters
@@ -205,6 +248,12 @@ Service worker to extension pages:
 { type: "TITLE_UPDATED", title, updatedAt, source, ok, error }
 ```
 
+Selection content script to service worker:
+
+```js
+{ type: "SELECTION_CAPTURED", selectedText, pageUrl, pageTitle, selectedAt }
+```
+
 ## Manual Smoke Test
 
 1. Deploy the server to Render.
@@ -215,5 +264,7 @@ Service worker to extension pages:
 6. Submit `Research Dashboard`.
 7. Confirm the open new tab changes to `Research Dashboard`.
 8. Open a second new tab and confirm it fetches `Research Dashboard` from the hosted server during page load.
+9. Highlight text on any normal webpage.
+10. Open `YOUR_RENDER_URL/api/selections` and confirm the selected text appears in the JSON log.
 
 If the title does not update, inspect the service worker logs first. Most beginner MV3 issues are visible there.
