@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MV3 Demo Options</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <h1>Options Page</h1>
+    <p>This page is here to show how MV3 exposes extension-owned pages. The title state still lives in <code>chrome.storage.local</code> and is coordinated by the service worker.</p>
+    <dl>
+      <dt>Cached title</dt>
+      <dd id="title">Loading...</dd>
+      <dt>Last source</dt>
+      <dd id="source">Loading...</dd>
+    </dl>
+  </main>
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #eef4f1;
+  color: #17211f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    linear-gradient(135deg, rgba(23, 107, 93, 0.16), rgba(219, 184, 92, 0.14)),
+    #eef4f1;
+}
+
+.shell {
+  width: min(1040px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: min(8vh, 72px) 0 40px;
+}
+
+.masthead {
+  padding: 0 0 34px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: #176b5d;
+}
+
+h1 {
+  width: min(900px, 100%);
+  margin: 0;
+  font-size: clamp(42px, 9vw, 92px);
+  line-height: 0.95;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.status {
+  margin: 22px 0 0;
+  max-width: 720px;
+  color: #4d5a57;
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0 34px;
+}
+
+.quick-links a,
+.quick-links button {
+  display: grid;
+  min-height: 64px;
+  place-items: center;
+  border: 1px solid #c7d5cf;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #17211f;
+  font: inherit;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.quick-links a:hover,
+.quick-links button:hover {
+  border-color: #176b5d;
+  background: white;
+}
+
+.quick-links a:focus-visible,
+.quick-links button:focus-visible {
+  outline: 3px solid #8ecfc4;
+  outline-offset: 2px;
+}
+
+.lesson {
+  border-top: 1px solid #c7d5cf;
+  padding-top: 24px;
+}
+
+.lesson h2 {
+  margin: 0 0 14px;
+  font-size: 24px;
+}
+
+.lesson ol {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 22px;
+  color: #3d4946;
+  line-height: 1.55;
+}
+
+code {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #d8e0dc;
+  border-radius: 4px;
+  padding: 2px 5px;
+}
+
+@media (max-width: 820px) {
+  .quick-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .shell {
+    width: min(100% - 28px, 1040px);
+    padding-top: 34px;
+  }
+
+  .quick-links {
+    grid-template-columns: 1fr;
+  }
+}

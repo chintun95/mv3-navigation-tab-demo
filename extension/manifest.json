@@ -1,0 +1,55 @@
+{
+  "manifest_version": 3,
+  "name": "MV3 Navigation Tab Learning Demo",
+  "version": "0.1.0",
+  "description": "A beginner Manifest V3 demo: new tab override, service worker, content script messaging, storage, and static DNR redirect rules.",
+  "minimum_chrome_version": "114",
+  "permissions": [
+    "storage",
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8790/*",
+    "http://remote-title.example/*"
+  ],
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "chrome_url_overrides": {
+    "newtab": "newtab/newtab.html"
+  },
+  "action": {
+    "default_title": "MV3 Navigation Demo",
+    "default_popup": "popup/popup.html"
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+  "side_panel": {
+    "default_path": "sidepanel/sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://127.0.0.1:8790/admin",
+        "http://127.0.0.1:8790/"
+      ],
+      "js": [
+        "content/admin-content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "remote_title_redirect",
+        "enabled": true,
+        "path": "rules/static-rules.json"
+      }
+    ]
+  }
+}

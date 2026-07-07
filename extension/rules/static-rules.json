@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1001,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "http://127.0.0.1:8790/api/title"
+      }
+    },
+    "condition": {
+      "regexFilter": "^http://remote-title\\.example/api/title(\\?.*)?$",
+      "resourceTypes": [
+        "xmlhttprequest"
+      ]
+    }
+  }
+]

@@ -1,0 +1,6 @@
+node_modules/
+extension/_metadata/
+*.log
+.env
+.env.*
+.DS_Store

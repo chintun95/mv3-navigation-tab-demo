@@ -1,0 +1,10 @@
+{
+  "name": "mv3-navigation-tab-demo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Beginner-friendly Manifest V3 new tab demo with service worker, content script, storage, and static DNR rules.",
+  "scripts": {
+    "configure-remote": "node scripts/configure-remote.js",
+    "serve": "node server/server.js"
+  }
+}

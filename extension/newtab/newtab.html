@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MV3 Navigation Tab</title>
+  <link rel="stylesheet" href="newtab.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="masthead">
+      <p class="eyebrow">Manifest V3 learning demo</p>
+      <h1 id="page-title">Loading title...</h1>
+      <p id="status" class="status">Asking the service worker for the latest remote title.</p>
+    </header>
+
+    <nav class="quick-links" aria-label="Quick navigation">
+      <a href="https://developer.chrome.com/docs/extensions/" target="_blank" rel="noreferrer">Chrome Extensions Docs</a>
+      <a href="http://127.0.0.1:8790/admin" target="_blank" rel="noreferrer" data-admin-link>Title Admin Server</a>
+      <a href="chrome://extensions" target="_blank" rel="noreferrer">Chrome Extensions Page</a>
+      <button id="refresh" type="button">Refresh title</button>
+    </nav>
+
+    <section class="lesson">
+      <h2>What just happened?</h2>
+      <ol>
+        <li>This new tab page is an extension page declared with <code>chrome_url_overrides</code>.</li>
+        <li>It sends <code>TITLE_GET</code> to the MV3 service worker.</li>
+        <li>The service worker fetches a fake remote URL.</li>
+        <li>A static Declarative Net Request rule redirects that request to the hosted server.</li>
+        <li>The title is cached in <code>chrome.storage.local</code> so the worker can safely sleep.</li>
+      </ol>
+    </section>
+  </main>
+
+  <script src="newtab.js"></script>
+</body>
+</html>
