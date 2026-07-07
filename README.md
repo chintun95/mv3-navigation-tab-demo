@@ -122,7 +122,7 @@ The new tab page sends this message:
 { type: "TITLE_GET" }
 ```
 
-The service worker receives it, fetches the fake remote URL, and saves the title to `chrome.storage.local`.
+The service worker receives it and always fetches the fake remote URL before responding. This means every newly opened tab asks the hosted server for the newest JSON title. The result is also saved to `chrome.storage.local` as a fallback for server errors.
 
 ## Step 5: Watch the Static Rule Work
 
@@ -173,7 +173,7 @@ In `chrome://extensions`, find **MV3 Navigation Tab Learning Demo** and click **
 Look for log messages like:
 
 ```text
-[service-worker] New tab requested the current title.
+[service-worker] New tab opened. Fetching the newest hosted title.
 [service-worker] Fetching fake remote URL. Static DNR should redirect it.
 [service-worker] Static DNR rule matched.
 [service-worker] Content script reported an admin title change.
@@ -183,7 +183,7 @@ Look for log messages like:
 
 MV3 service workers are event-driven. Chrome can stop them when they are idle. That means you should not rely on global variables for important state.
 
-This demo stores the latest title in `chrome.storage.local` so the next service worker wake-up can recover it.
+This demo stores the latest title in `chrome.storage.local` so the service worker can show a fallback title if the hosted server is sleeping or temporarily unavailable. Normal new-tab loads still fetch the newest server value first.
 
 ## Message Contracts
 
@@ -214,6 +214,6 @@ Service worker to extension pages:
 5. Open `YOUR_RENDER_URL/admin`.
 6. Submit `Research Dashboard`.
 7. Confirm the open new tab changes to `Research Dashboard`.
-8. Open a second new tab and confirm it starts with `Research Dashboard`.
+8. Open a second new tab and confirm it fetches `Research Dashboard` from the hosted server during page load.
 
 If the title does not update, inspect the service worker logs first. Most beginner MV3 issues are visible there.

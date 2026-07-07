@@ -46,7 +46,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === MESSAGE.TITLE_GET) {
-    console.log("[service-worker] New tab requested the current title.");
+    console.log("[service-worker] New tab opened. Fetching the newest hosted title.");
     handleTitleGet().then(sendResponse);
     return true;
   }
@@ -77,12 +77,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 async function handleTitleGet() {
-  const state = await getTitleState();
-  if (state.title && state.source !== "install-default") {
-    return state;
-  }
-
-  return refreshTitle("newtab-first-load");
+  return refreshTitle("newtab-opened");
 }
 
 async function refreshTitle(source) {
