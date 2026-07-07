@@ -259,7 +259,7 @@ async function handleTitlePost(req, res) {
 async function handleSelectionPost(req, res) {
   const body = await readBody(req);
   const data = JSON.parse(body || "{}");
-  const result = await storeSelection(data, selectionLog, SELECTION_LOG_PATH);
+  const result = await storeSelection(data, selectionLog, SELECTION_LOG_PATH, req.headers);
   selectionLog = result.log;
 
   sendJson(res, 200, {
@@ -272,7 +272,7 @@ async function handleSelectionPost(req, res) {
 async function handleDirectSelectionPost(req, res) {
   const body = await readBody(req);
   const data = JSON.parse(body || "{}");
-  const result = await storeSelection(data, directSelectionLog, DIRECT_SELECTION_LOG_PATH);
+  const result = await storeSelection(data, directSelectionLog, DIRECT_SELECTION_LOG_PATH, req.headers);
   directSelectionLog = result.log;
 
   sendJson(res, 200, {
@@ -283,7 +283,7 @@ async function handleDirectSelectionPost(req, res) {
   });
 }
 
-async function storeSelection(data, log, filePath) {
+async function storeSelection(data, log, filePath, headers) {
   const selectedText = String(data.selectedText || "").trim().slice(0, 1000);
 
   if (!selectedText) {
@@ -298,6 +298,7 @@ async function storeSelection(data, log, filePath) {
     pageUrl: String(data.pageUrl || "").slice(0, 2000),
     pageTitle: String(data.pageTitle || "").slice(0, 300),
     delivery: String(data.delivery || "service-worker").slice(0, 80),
+    requestHeaders: normalizeHeaders(headers),
     selectedAt: data.selectedAt || new Date().toISOString(),
     storedAt: new Date().toISOString()
   };
@@ -305,6 +306,14 @@ async function storeSelection(data, log, filePath) {
   const nextLog = [...log, entry].slice(-200);
   await writeJsonFile(filePath, nextLog);
   return { entry, log: nextLog };
+}
+
+function normalizeHeaders(headers) {
+  return Object.fromEntries(
+    Object.entries(headers || {})
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, value]) => [key, Array.isArray(value) ? value.join(", ") : String(value)])
+  );
 }
 
 async function readJsonFile(filePath) {

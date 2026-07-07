@@ -200,6 +200,8 @@ The server appends the latest selections to:
 server/data/selection-log.json
 ```
 
+Each saved entry includes the selected text, source page metadata, delivery path, and the request headers received by the server.
+
 You can inspect the current hosted selection log at:
 
 ```text
@@ -217,6 +219,8 @@ That direct path writes to:
 ```text
 server/data/direct-selection-log.json
 ```
+
+This separate log also stores request headers so you can compare direct content-script fetch headers with service-worker fetch headers.
 
 You can inspect it at:
 
