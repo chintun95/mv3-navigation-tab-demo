@@ -3,7 +3,7 @@ const MESSAGE = {
   TITLE_REFRESH: "TITLE_REFRESH"
 };
 
-const ADMIN_URL = "http://127.0.0.1:8790/admin";
+const ADMIN_URL = "https://mv3-navigation-tab-demo.onrender.com/admin";
 
 const titleEl = document.querySelector("#title");
 const openAdmin = document.querySelector("#open-admin");

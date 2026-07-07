@@ -64,7 +64,7 @@ https://mv3-navigation-title-server.onrender.com
 For the examples below, replace this placeholder with your actual URL:
 
 ```text
-REMOTE_SERVER_URL=https://mv3-navigation-title-server.onrender.com
+REMOTE_SERVER_URL=https://mv3-navigation-tab-demo.onrender.com
 ```
 
 ## Step 2: Configure the Extension for Your Hosted URL
