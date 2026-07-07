@@ -9,6 +9,11 @@ const DISPLAY_HOST = HOST === "0.0.0.0" ? "127.0.0.1" : HOST;
 const DATA_DIR = path.join(__dirname, "data");
 const SELECTION_LOG_PATH = path.join(DATA_DIR, "selection-log.json");
 const DIRECT_SELECTION_LOG_PATH = path.join(DATA_DIR, "direct-selection-log.json");
+const PUBLIC_ORIGIN = process.env.PUBLIC_ORIGIN || "https://mv3-navigation-tab-demo.onrender.com";
+const LOCAL_DEV_ORIGINS = new Set([
+  "http://127.0.0.1:8790",
+  "http://localhost:8790"
+]);
 
 let currentTitle = "MV3 Navigation Lab";
 const titleLog = [
@@ -33,6 +38,14 @@ function sendJson(res, status, data) {
   send(res, status, JSON.stringify(data, null, 2), {
     "Content-Type": "application/json; charset=utf-8",
     "Access-Control-Allow-Origin": "*"
+  });
+}
+
+function sendCorsRejection(res, origin) {
+  sendJson(res, 403, {
+    ok: false,
+    error: "Cross-site webpage origins are rejected for selection capture in this lab.",
+    origin: origin || ""
   });
 }
 
@@ -316,6 +329,39 @@ function normalizeHeaders(headers) {
   );
 }
 
+function isSelectionPath(pathname) {
+  return pathname === "/api/selections" || pathname === "/api/direct-selections";
+}
+
+function isAllowedSelectionOrigin(origin) {
+  if (!origin) {
+    return true;
+  }
+
+  if (origin.startsWith("chrome-extension://")) {
+    return true;
+  }
+
+  if (origin === PUBLIC_ORIGIN || LOCAL_DEV_ORIGINS.has(origin)) {
+    return true;
+  }
+
+  return false;
+}
+
+function corsHeadersForSelection(origin) {
+  if (!origin) {
+    return {};
+  }
+
+  return {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Headers": "content-type",
+    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    "Vary": "Origin"
+  };
+}
+
 async function readJsonFile(filePath) {
   try {
     const raw = await fs.readFile(filePath, "utf8");
@@ -337,6 +383,17 @@ async function writeJsonFile(filePath, data) {
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${DISPLAY_HOST}:${PORT}`);
+
+    if (req.method === "OPTIONS" && isSelectionPath(url.pathname)) {
+      const origin = req.headers.origin || "";
+      if (!isAllowedSelectionOrigin(origin)) {
+        sendCorsRejection(res, origin);
+        return;
+      }
+
+      send(res, 204, "", corsHeadersForSelection(origin));
+      return;
+    }
 
     if (req.method === "OPTIONS") {
       send(res, 204, "", {
@@ -388,11 +445,21 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === "POST" && url.pathname === "/api/selections") {
+      if (!isAllowedSelectionOrigin(req.headers.origin || "")) {
+        sendCorsRejection(res, req.headers.origin);
+        return;
+      }
+
       await handleSelectionPost(req, res);
       return;
     }
 
     if (req.method === "POST" && url.pathname === "/api/direct-selections") {
+      if (!isAllowedSelectionOrigin(req.headers.origin || "")) {
+        sendCorsRejection(res, req.headers.origin);
+        return;
+      }
+
       await handleDirectSelectionPost(req, res);
       return;
     }

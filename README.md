@@ -228,6 +228,8 @@ You can inspect it at:
 https://mv3-navigation-tab-demo.onrender.com/api/direct-selections
 ```
 
+The server intentionally rejects normal cross-site webpage origins for selection capture. After this experiment, a direct content-script fetch from a page like Wikipedia should fail CORS/preflight because its `Origin` is `https://en.wikipedia.org`. The service-worker path should still work because its `Origin` is `chrome-extension://...`.
+
 Because this content script matches all HTTP/HTTPS pages, Chrome will warn that the extension can read and change data on websites. That is expected for this lab feature. Do not ship this behavior publicly without clear consent, a privacy policy, and a narrower purpose.
 
 ## Step 8: Inspect the Service Worker
