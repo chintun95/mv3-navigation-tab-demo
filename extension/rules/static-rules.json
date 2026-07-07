@@ -14,5 +14,25 @@
         "xmlhttprequest"
       ]
     }
+  },
+  {
+    "id": 1002,
+    "priority": 2,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "Origin",
+          "operation": "set",
+          "value": "https://mv3-navigation-tab-demo.onrender.com"
+        }
+      ]
+    },
+    "condition": {
+      "regexFilter": "^https://mv3-navigation-tab-demo\\.onrender\\.com/api/direct-selections(\\?.*)?$",
+      "resourceTypes": [
+        "xmlhttprequest"
+      ]
+    }
   }
 ]

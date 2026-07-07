@@ -51,7 +51,16 @@ manifest.content_scripts = manifest.content_scripts.map((entry) => {
 fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 
 const rules = JSON.parse(fs.readFileSync(rulesPath, "utf8"));
-rules[0].action.redirect.url = `${remoteOrigin}/api/title`;
+const titleRedirectRule = rules.find((rule) => rule.id === 1001);
+const directOriginRule = rules.find((rule) => rule.id === 1002);
+
+titleRedirectRule.action.redirect.url = `${remoteOrigin}/api/title`;
+
+if (directOriginRule) {
+  directOriginRule.action.requestHeaders[0].value = remoteOrigin;
+  directOriginRule.condition.regexFilter = `^${escapeRegex(remoteOrigin)}/api/direct-selections(\\?.*)?$`;
+}
+
 fs.writeFileSync(rulesPath, `${JSON.stringify(rules, null, 2)}\n`);
 
 replaceFileText(popupPath, /const ADMIN_URL = ".*?";/, `const ADMIN_URL = "${remoteOrigin}/admin";`);
@@ -70,4 +79,8 @@ function replaceFileText(filePath, pattern, replacement) {
   }
 
   fs.writeFileSync(filePath, original.replace(pattern, replacement));
+}
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
